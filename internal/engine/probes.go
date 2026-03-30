@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	crypto_tls "crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
@@ -35,6 +36,35 @@ type HTTPTimingResult struct {
 	TimeToFirstByte time.Duration `json:"ttfb_ms"`
 	TotalTime       time.Duration `json:"total_ms"`
 	Error           string        `json:"error,omitempty"`
+}
+
+// GetDefaultGateway returns the default gateway IP.
+func GetDefaultGateway() string {
+	out, err := exec.Command("ip", "route", "show", "default").Output()
+	if err != nil {
+		// Fallback for macOS
+		out, err = exec.Command("route", "-n", "get", "default").Output()
+		if err != nil {
+			return ""
+		}
+		for _, line := range strings.Split(string(out), "\n") {
+			if strings.Contains(line, "gateway:") {
+				parts := strings.Split(line, ":")
+				if len(parts) >= 2 {
+					return strings.TrimSpace(parts[1])
+				}
+			}
+		}
+		return ""
+	}
+	// Linux: "default via 192.168.4.1 dev eth0"
+	parts := strings.Fields(string(out))
+	for i, p := range parts {
+		if p == "via" && i+1 < len(parts) {
+			return parts[i+1]
+		}
+	}
+	return ""
 }
 
 // Ping executes a ping to the given host and parses the results.
@@ -157,7 +187,7 @@ func HTTPTiming(url string) HTTPTimingResult {
 		TLSHandshakeStart: func() {
 			tlsStart = time.Now()
 		},
-		TLSHandshakeDone: func(_ interface{ ConnectionState() interface{} }, _ error) {
+		TLSHandshakeDone: func(_ crypto_tls.ConnectionState, _ error) {
 			tlsEnd = time.Now()
 		},
 		GotFirstResponseByte: func() {
@@ -182,7 +212,7 @@ func HTTPTiming(url string) HTTPTimingResult {
 		TLSHandshakeStart: func() {
 			tlsStart = time.Now()
 		},
-		TLSHandshakeDone: func(_ interface{}, _ error) {
+		TLSHandshakeDone: func(_ crypto_tls.ConnectionState, _ error) {
 			tlsEnd = time.Now()
 		},
 		GotFirstResponseByte: func() {
