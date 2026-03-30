@@ -1,0 +1,17 @@
+[Unit]
+Description=Habanero Network Diagnostic Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/habanero-agent --config /etc/habanero/agent.yml
+Restart=always
+RestartSec=10
+WatchdogSec=300
+User=root
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,42 @@
+agent:
+  id: auto
+  name: "my-agent"
+  site: "office-main"
+
+fleet:
+  endpoint: "https://api.ipvegan.com/api/v1/fleet"
+  api_key: "HAB-XXXX-XXXX-XXXX-XXXX"
+  report_interval: 300
+
+monitoring:
+  continuous: true
+  ping_targets: ["1.1.1.1", "8.8.8.8", "gateway"]
+  ping_interval: 10
+  dns_targets: ["example.com", "google.com"]
+  dns_interval: 30
+
+alerts:
+  rules:
+    - name: "Gateway unreachable"
+      metric: gateway_rtt
+      operator: "eq"
+      threshold: null
+      consecutive: 3
+      severity: critical
+      actions: [webhook, pagerduty]
+
+integrations:
+  pagerduty:
+    enabled: false
+    routing_key: ""
+  slack:
+    enabled: false
+    webhook_url_env: "SLACK_WEBHOOK"
+    channel: "#network-alerts"
+  servicenow:
+    enabled: false
+    instance: ""
+
+logging:
+  level: info
+  file: /var/log/habanero/agent.log
