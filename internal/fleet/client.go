@@ -43,7 +43,7 @@ func (c *Client) Register() error {
 		"os_version":       runtime.GOOS + "/" + runtime.GOARCH,
 		"agent_version":    "0.1.0",
 	}
-	return c.post("/api/fleet/register", body)
+	return c.post("/fleet/register", body)
 }
 
 func (c *Client) ReportDiagnostic(result *engine.DiagnosticResult) error {
@@ -53,13 +53,13 @@ func (c *Client) ReportDiagnostic(result *engine.DiagnosticResult) error {
 		"timestamp":  time.Now().UTC().Format(time.RFC3339),
 		"diagnostic": result,
 	}
-	return c.post("/api/fleet/diagnostic", body)
+	return c.post("/fleet/diagnostic", body)
 }
 
 func (c *Client) ReportMetrics(metrics map[string]any) error {
 	metrics["device_id"] = c.agentID
 	metrics["timestamp"] = time.Now().UTC().Format(time.RFC3339)
-	return c.post("/api/fleet/metrics", metrics)
+	return c.post("/fleet/metrics", metrics)
 }
 
 func (c *Client) GetPeers() ([]map[string]any, error) {
